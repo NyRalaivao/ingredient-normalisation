@@ -11,7 +11,7 @@ public class Main {
 //        System.out.println(newDish);
 
         // Ingredient creations
-        //List<Ingredient> createdIngredients = dataRetriever.createIngredients(List.of(new Ingredient(null, "Fromage", CategoryEnum.DAIRY, 1200.0)));
+        // List<Ingredient> createdIngredients = dataRetriever.createIngredients(List.of(new Ingredient(null, "Fromage", CategoryEnum.DAIRY, 1200.0)));
         //System.out.println(createdIngredients);
     }
 }

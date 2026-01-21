@@ -19,7 +19,29 @@ update dish
 set price = 2000.0
 where id = 1;
 
-update dish
+update dishf
 set price = 6000.0
 where id = 2;
 
+
+CREATE TYPE dish_type AS ENUM ('STARTER', 'MAIN', 'DESSERT');
+
+CREATE TYPE ingredient_category AS ENUM (
+    'VEGETABLE',
+    'MEAT',
+    'DAIRY',
+    'OIL',
+    'SPICE',
+    'OTHER'
+    );
+
+CREATE TYPE unit_type AS ENUM ('pcs', 'kg', 'l');
+
+
+INSERT INTO dish_ingredient (id, id_dish, id_ingredient, quantity_required, unit)
+VALUES
+    (1, 1, 1, 0.20, 'kg'),
+    (2, 1, 2, 0.15, 'kg'),
+    (3, 2, 3, 1.00, 'kg'),
+    (4, 4, 4, 0.30, 'kg'),
+    (5, 4, 5, 0.20, 'kg');
