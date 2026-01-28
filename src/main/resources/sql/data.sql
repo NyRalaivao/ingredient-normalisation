@@ -16,11 +16,11 @@ values (1, 'Laitue', 'VEGETABLE', 800.0),
 
 
 update dish
-set price = 2000.0
+set selling_price = 2000.0
 where id = 1;
 
 update dish
-set price = 6000.0
+set selling_price = 6000.0
 where id = 2;
 
 
@@ -42,4 +42,4 @@ values (1, 1, 1, 0.2, 'KG'),
        (2, 1, 2, 0.15, 'KG'),
        (3, 2, 3, 1.0, 'KG'),
        (4, 4, 4, 0.3, 'KG'),
-       (5, 4, 5, 0.2, 'KG');0.2, 'KG');
+       (5, 4, 5, 0.2, 'KG');
