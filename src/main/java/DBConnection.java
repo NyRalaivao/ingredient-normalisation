@@ -4,25 +4,24 @@ import java.sql.SQLException;
 
 public class DBConnection {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/mini_dish_db";
-    private static final String USER = "mini_dish_db_manager";
-    private static final String PASSWORD = "123456";
-
     public Connection getConnection() {
         try {
-            return DriverManager.getConnection(URL, USER, PASSWORD);
+            String jdbcURl = System.getenv("jdbc:postgresql://localhost:5432/mini_dish_db");
+            String user = System.getenv("mini_dish_db_manager");
+            String password = System.getenv("123456");
+            return DriverManager.getConnection("jdbc:postgresql://localhost:5432/mini_dish_db", "postgres", "postgres");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void closeConnection(Connection connection) {
-        try {
-            if (connection != null) {
+        if (connection != null) {
+            try {
                 connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 }
