@@ -15,43 +15,65 @@ create table ingredient
     id       serial primary key,
     name     varchar(255),
     price    numeric(10, 2),
-    category ingredient_category,
-    id_dish  int references dish (id)
+    category ingredient_category
 );
 
 alter table dish
     add column if not exists price numeric(10, 2);
 
+alter table dish
+    rename column price to selling_price;
+
+alter table ingredient
+    drop column if exists id_dish;
 
 alter table ingredient
     add column if not exists required_quantity numeric(10, 2);
 
-CREATE TYPE unit_type AS ENUM ('pcs', 'kg', 'l');
+alter table ingredient
+    drop column if exists required_quantity;
 
+create type unit as enum ('PCS', 'KG', 'L');
 
-CREATE TABLE dish_ingredient (
-    id SERIAL PRIMARY KEY,
-    id_dish INT NOT NULL,
-    id_ingredient INT NOT NULL,
-    quantity_required NUMERIC NOT NULL,
-    unit unit_type NOT NULL,
-
-    CONSTRAINT fk_dish
-    FOREIGN KEY (id_dish)
-    REFERENCES dish(id)
-    ON DELETE CASCADE,
-
-    CONSTRAINT fk_ingredient
-    FOREIGN KEY (id_ingredient)
-    REFERENCES ingredient(id)
-    ON DELETE CASCADE,
-
-    CONSTRAINT unique_dish_ingredient
-    UNIQUE (id_dish, id_ingredient)
+create table if not exists dish_ingredient
+(
+    id                serial primary key,
+    id_ingredient     int,
+    id_dish           int,
+    required_quantity numeric(10, 2),
+    unit              unit,
+    foreign key (id_ingredient) references ingredient (id),
+    foreign key (id_dish) references dish (id)
 );
 
-UPDATE dish SET price = 3500.00 WHERE id = 1;
-UPDATE dish SET price = 12000.00 WHERE id = 2;
-UPDATE dish SET price = NULL WHERE id = 3;
-UPDATE dish SET price = 8000.00 WHERE id = 4;
-UPDATE dish SET price = NULL WHERE id = 5;
+create type movement_type as enum ('IN', 'OUT');
+
+create table if not exists stock_movement
+(
+    id                serial primary key,
+    id_ingredient     int,
+    quantity          numeric(10, 2),
+    unit              unit,
+    type              movement_type,
+    creation_datetime timestamp without time zone,
+    foreign key (id_ingredient) references ingredient (id)
+);
+
+
+alter table ingredient
+    add column if not exists initial_stock numeric(10, 2);
+
+create table if not exists "order"
+(
+    id                serial primary key,
+    reference         varchar(255),
+    creation_datetime timestamp without time zone
+);
+
+create table if not exists dish_order
+(
+    id       serial primary key,
+    id_order int references "order" (id),
+    id_dish  int references dish (id),
+    quantity int
+);
