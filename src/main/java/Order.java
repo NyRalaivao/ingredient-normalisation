@@ -44,6 +44,8 @@ public class Order {
     public String toString() {
         return "Order{" +
                 "id=" + id +
+                "totalAmountWithoutVat=" + getTotalAmountWithoutVat() +
+                "totalAmountWithVat=" + getTotalAmountWithVat() +
                 ", reference='" + reference + '\'' +
                 ", creationDatetime=" + creationDatetime +
                 ", dishOrderList=" + dishOrderList +
@@ -51,11 +53,16 @@ public class Order {
     }
 
     Double getTotalAmountWithoutVat() {
-        throw new RuntimeException("Not implemented");
+        if(dishOrderList == null) return null;
+        double amount = 0.0;
+        for (DishOrder dishOrder : dishOrderList) {
+            amount = amount + dishOrder.getQuantity() * dishOrder.getDish().getPrice();
+        }
+        return amount;
     }
 
     Double getTotalAmountWithVat() {
-        throw new RuntimeException("Not implemented");
+        return getTotalAmountWithoutVat() == null ? null : getTotalAmountWithoutVat() * 1.2;
     }
 
 

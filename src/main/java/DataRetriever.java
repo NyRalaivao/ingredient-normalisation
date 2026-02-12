@@ -1,3 +1,5 @@
+import org.postgresql.util.PSQLException;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,89 @@ public class DataRetriever {
             throw new RuntimeException("Order not found with reference " + reference);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    Order saveOrder(Order order) {
+        String upsertOrderSql = """
+                    INSERT INTO "order" (id, reference, creation_datetime)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT (id) DO NOTHING
+                    RETURNING id
+                """;
+
+        //TODO : bug on expected return ID when already exists
+
+        try (Connection conn = new DBConnection().getConnection()) {
+            conn.setAutoCommit(false);
+            Integer orderId;
+            try (PreparedStatement ps = conn.prepareStatement(upsertOrderSql)) {
+                int nextSerialValue = getNextSerialValue(conn, "\"order\"", "id");
+                if (order.getId() != null) {
+                    ps.setInt(1, order.getId());
+                } else {
+                    ps.setInt(1, nextSerialValue);
+                }
+                ps.setString(2, order.getReference());
+                ps.setTimestamp(3, Timestamp.from(order.getCreationDatetime()));
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                    orderId = rs.getInt(1);
+                    } else {
+                        orderId = order.getId() != null ? order.getId() : nextSerialValue;
+                    }
+                }
+            }
+            List<DishOrder> dishOrderList = order.getDishOrderList();
+            detachOrders(conn, orderId);
+            attachOrders(conn, orderId, dishOrderList);
+
+            conn.commit();
+            return findOrderByReference(order.getReference());
+        } catch (PSQLException e) {
+            if(e.getMessage().contains("duplicate key value violates unique constraint \"order_reference_unique\"")) {
+                throw new RuntimeException("Order already exists with reference " + order.getReference());
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void detachOrders(Connection conn, Integer idOrder) {
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM dish_order where id_order = ?")) {
+                ps.setInt(1, idOrder);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+    }
+
+    private void attachOrders(Connection conn, Integer orderId, List<DishOrder> dishOrders)
+            throws SQLException {
+
+        if (dishOrders == null || dishOrders.isEmpty()) {
+            return;
+        }
+        String attachSql = """
+                    insert into dish_order (id, id_order, id_dish, quantity)
+                    values (?, ?, ?, ?)
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(attachSql)) {
+        int nextSerialValue = getNextSerialValue(conn, "dish_order", "id");
+            for (DishOrder dishOrder : dishOrders) {
+                ps.setInt(1, nextSerialValue);
+                ps.setInt(2, orderId);
+                ps.setInt(3, dishOrder.getDish().getId());
+                ps.setDouble(4, dishOrder.getQuantity());
+                ps.addBatch(); // Can be substitute ps.executeUpdate() but bad performance
+                nextSerialValue++;
+            }
+            ps.executeBatch();
         }
     }
 

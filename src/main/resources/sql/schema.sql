@@ -77,3 +77,6 @@ create table if not exists dish_order
     id_dish  int references dish (id),
     quantity int
 );
+
+alter table "order"
+    add constraint  order_reference_unique unique (reference);
